@@ -12,7 +12,7 @@ Servo esc_fr;
 Servo esc_bl;
 Servo esc_br;
 
-int debug_interval;
+int debug_timer;
 
 void setup() {
 	Serial.begin(SERIAL_PORT_SPEED);
@@ -20,31 +20,27 @@ void setup() {
     rc = RC::getInstance();
     rc->setup();
 
-	esc_fl.attach(ESC_FL_PIN, 1000, 2000);
-	esc_fr.attach(ESC_FR_PIN, 1000, 2000);
-	esc_bl.attach(ESC_BL_PIN, 1000, 2000);
-	esc_br.attach(ESC_BR_PIN, 1000, 2000);
+	esc_fl.attach(ESC_FL_PIN, PWM_MIN, PWM_MAX);
+	esc_fr.attach(ESC_FR_PIN, PWM_MIN, PWM_MAX);
+	esc_bl.attach(ESC_BL_PIN, PWM_MIN, PWM_MAX);
+	esc_br.attach(ESC_BR_PIN, PWM_MIN, PWM_MAX);
 
-    debug_interval = 0;
+    debug_timer = millis();
 }
 
 void loop() {
     rc->run();
 
-    if(debug_interval >= 10) {
+    int powerLevel = rc->getLeftStickY();
+    esc_fl.writeMicroseconds(powerLevel);
+    esc_fr.writeMicroseconds(powerLevel);
+    esc_bl.writeMicroseconds(powerLevel);
+    esc_br.writeMicroseconds(powerLevel);
+
+    if(millis() >= debug_timer + DEBUG_INTERVAL) {
         rc->printDebug();
+        Serial.print("Power Level: "); Serial.println(powerLevel);
 
-        debug_interval = 0;
+        debug_timer = millis();
     }
-
-    int powerLevel = map(rc->getLeftStickY(), 1000, 2000, 0, 180);
-    Serial.print("Power Level: "); Serial.println(powerLevel);
-
-    esc_fl.write(powerLevel);
-    esc_fr.write(powerLevel);
-    esc_bl.write(powerLevel);
-    esc_br.write(powerLevel);
-
-    ++debug_interval;
-	delay(20);
 }

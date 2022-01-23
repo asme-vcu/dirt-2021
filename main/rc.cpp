@@ -74,12 +74,12 @@ RC* RC::getInstance() {
 }
 
 void RC::printDebug() {
-    Serial.print("CH1:"); Serial.print(map(rc_values[RC_CH1], 1000, 2000, -100, 100)); Serial.print("\t");
-    Serial.print("CH2:"); Serial.print(map(rc_values[RC_CH2], 1000, 2000, -100, 100)); Serial.print("\t");
-    Serial.print("CH3:"); Serial.print(map(rc_values[RC_CH3], 1000, 2000, -100, 100)); Serial.print("\t");
-    Serial.print("CH4:"); Serial.print(map(rc_values[RC_CH4], 1000, 2000, -100, 100)); Serial.print("\t");
-    Serial.print("CH5:"); Serial.print(map(rc_values[RC_CH5], 1000, 2000, -100, 100)); Serial.print("\t");
-    Serial.print("CH6:"); Serial.print(map(rc_values[RC_CH6], 1000, 2000, -100, 100)); Serial.print("\n");
+    Serial.print("CH1:"); Serial.print(map(rc_values[RC_CH1], PWM_MIN, PWM_MAX, -100, 100)); Serial.print("\t");
+    Serial.print("CH2:"); Serial.print(map(rc_values[RC_CH2], PWM_MIN, PWM_MAX, -100, 100)); Serial.print("\t");
+    Serial.print("CH3:"); Serial.print(map(rc_values[RC_CH3], PWM_MIN, PWM_MAX, -100, 100)); Serial.print("\t");
+    Serial.print("CH4:"); Serial.print(map(rc_values[RC_CH4], PWM_MIN, PWM_MAX, -100, 100)); Serial.print("\t");
+    Serial.print("CH5:"); Serial.print(map(rc_values[RC_CH5], PWM_MIN, PWM_MAX, -100, 100)); Serial.print("\t");
+    Serial.print("CH6:"); Serial.print(map(rc_values[RC_CH6], PWM_MIN, PWM_MAX, -100, 100)); Serial.print("\n");
 }
 
 uint16_t RC::getLeftStickX()  { return rc_values[RC_CH4]; }

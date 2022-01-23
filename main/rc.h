@@ -11,7 +11,7 @@ class RC : public Module {
     public:
         // for interrupts to work, functions must be static (i.e. this needs to be a singleton class)
         static RC* getInstance();
-        // values range from 1000 to 2000
+        // values range from PWM_MIN to PWM_MAX (1000ms to 2000ms)
         uint16_t getLeftStickX();
         uint16_t getLeftStickY();
         uint16_t getRightStickX();

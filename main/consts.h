@@ -6,6 +6,7 @@
 
 // Serial
 #define SERIAL_PORT_SPEED 9600
+#define DEBUG_INTERVAL 200
 
 #define RC_CH1_PIN A0
 #define RC_CH2_PIN A1
@@ -18,5 +19,8 @@
 #define ESC_FR_PIN 3
 #define ESC_BL_PIN 6
 #define ESC_BR_PIN 5
+
+#define PWM_MIN 1000
+#define PWM_MAX 2000
 
 #endif
