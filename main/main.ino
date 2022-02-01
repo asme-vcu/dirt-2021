@@ -18,7 +18,6 @@ uint32_t debug_timer;
 void setup() {
 	Serial.begin(SERIAL_PORT_SPEED);
     while(!Serial) delay(10);
-    Serial.println("Goodbye cruel world ;(");
 
     rc = RC();
     rc.setup();
@@ -50,6 +49,12 @@ void loop() {
     imu.run();
 
     int powerLevel = rc.getRightStickY();
+
+    // fix range & add killswitch
+    if(powerLevel < 1000 || powerLevel > 2000 || rc.getSwitchA() > 1500) {
+        powerLevel = 1500;
+    }
+
     esc_fl.writeMicroseconds(powerLevel);
     esc_fr.writeMicroseconds(powerLevel);
     esc_bl.writeMicroseconds(powerLevel);
@@ -57,9 +62,9 @@ void loop() {
 
 #if DEBUG_ENABLED
     if(millis() >= debug_timer + DEBUG_INTERVAL) {
-        //rc.printDebug();
+        rc.printDebug();
         imu.printDebug();
-        //Serial.print("Power Level: "); Serial.println(powerLevel);
+        Serial.print("Power Level: "); Serial.println(powerLevel);
 
         debug_timer = millis();
     }
