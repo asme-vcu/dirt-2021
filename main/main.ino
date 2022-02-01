@@ -1,11 +1,11 @@
 /* Main Robot Code */
 #include"consts.h"
 #include"rc.h"
-//#include"imu.h"
+#include"imu.h"
 #include<Servo.h>
 
 RC rc;
-//IMU* imu;
+IMU imu;
 
 Servo esc_fl;
 Servo esc_fr;
@@ -17,13 +17,14 @@ uint32_t debug_timer;
 
 void setup() {
 	Serial.begin(SERIAL_PORT_SPEED);
+    while(!Serial) delay(10);
     Serial.println("Goodbye cruel world ;(");
 
     rc = RC();
     rc.setup();
 
-    //imu = IMU::getInstance();
-    //imu->setup();
+    imu = IMU();
+    imu.setup();
 
 	esc_fl.attach(ESC_FL_PIN, PWM_MIN, PWM_MAX);
 	esc_fr.attach(ESC_FR_PIN, PWM_MIN, PWM_MAX);
@@ -46,7 +47,7 @@ void setup() {
 
 void loop() {
     rc.run();
-    //imu->run();
+    imu.run();
 
     int powerLevel = rc.getRightStickY();
     esc_fl.writeMicroseconds(powerLevel);
@@ -56,9 +57,9 @@ void loop() {
 
 #if DEBUG_ENABLED
     if(millis() >= debug_timer + DEBUG_INTERVAL) {
-        rc.printDebug();
-        //imu->printDebug();
-        Serial.print("Power Level: "); Serial.println(powerLevel);
+        //rc.printDebug();
+        imu.printDebug();
+        //Serial.print("Power Level: "); Serial.println(powerLevel);
 
         debug_timer = millis();
     }

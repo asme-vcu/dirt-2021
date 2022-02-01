@@ -24,15 +24,6 @@
 #define PWM_MAX 2000
 
 // IMU Module
-#define IMU_INT_PIN 35
-#define IMU_AD0_PIN LOW
-#define IMU_DMP_HLT false // Should the program wait for serial input to calibrate DMP
-
-#define IMU_X_ACCEL   286
-#define IMU_Y_ACCEL -4546
-#define IMU_Z_ACCEL  1008
-#define IMU_X_GYRO     66
-#define IMU_Y_GYRO      5
-#define IMU_Z_GYRO     27
+#define MPU_ENABLED true
 
 #endif

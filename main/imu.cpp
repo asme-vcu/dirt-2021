@@ -2,170 +2,134 @@
 #include"imu.h"
 #include"consts.h"
 
-volatile bool IMU::mpuInterrupt = false;
-IMU* IMU::instance = new IMU;
-
-IMU* IMU::getInstance() {
-    if(!instance) {
-        instance = new IMU;
-    }
-    return instance;
-}
-
 IMU::IMU() {
-    dmpReady = false;
-    mpuInterrupt = false;
-    mpu = new MPU6050(IMU_AD0_PIN ? 0x69 : 0x68);
-}
-
-void IMU::dmpDataReady() {
-    mpuInterrupt = true;
+	mpu = Adafruit_MPU6050();
 }
 
 void IMU::setup() {
-    // join I2C bus (I2Cdev library doesn't do this automatically)
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-	Wire.begin();
-	Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
-#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-	Fastwire::setup(400, true);
-#endif
+#if MPU_ENABLED
+	// Begin MPU setup & calibration
 
-	// initialize device
-	Serial.println(F("Initializing I2C devices..."));
-	mpu->initialize();
-	pinMode(IMU_INT_PIN, INPUT);
-	
-	delay(1000);
-
-	// verify connection
-	Serial.println(F("Testing device connections..."));
-
-    goodConnection = mpu->testConnection();
-	Serial.println(goodConnection ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
-
-    if(!goodConnection) {
-        return;
-    }
-
-    // wait for ready
-#if IMU_DMP_HLT
-	Serial.println(F("\nSend any character to begin DMP programming and demo: "));
-	while (Serial.available() && Serial.read()); // empty buffer
-	while (!Serial.available()) {delay(100);}    // wait for data
-	while (Serial.available() && Serial.read()); // empty buffer again
-#endif
-
-	// load and configure the DMP
-	Serial.println(F("Initializing DMP..."));
-	devStatus = mpu->dmpInitialize();
-
-	// supply your own gyro offsets here, scaled for min sensitivity
-	mpu->setXGyroOffset(65);
-	mpu->setYGyroOffset(5);
-	mpu->setZGyroOffset(26);
-	mpu->setXAccelOffset(282);
-	mpu->setYAccelOffset(-4542);
-	mpu->setZAccelOffset(1002);
-	// make sure it worked (returns 0 if so)
-	if (devStatus == 0) {
-		// Calibration Time: generate offsets and calibrate our MPU6050
-		mpu->CalibrateAccel(6);
-		mpu->CalibrateGyro(6);
-		Serial.println();
-		mpu->PrintActiveOffsets();
-		// turn on the DMP, now that it's ready
-		Serial.println(F("Enabling DMP..."));
-		mpu->setDMPEnabled(true);
-
-		// enable Arduino interrupt detection
-		Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
-		Serial.print(digitalPinToInterrupt(IMU_INT_PIN));
-		Serial.println(F(")..."));
-		attachInterrupt(digitalPinToInterrupt(IMU_INT_PIN), dmpDataReady, RISING);
-		mpuIntStatus = mpu->getIntStatus();
-
-		// set our DMP Ready flag so the main loop() function knows it's okay to use it
-		Serial.println(F("DMP ready! Waiting for first interrupt..."));
-		dmpReady = true;
-
-		// get expected DMP packet size for later comparison
-		packetSize = mpu->dmpGetFIFOPacketSize();
-	} else {
-		// ERROR!
-		// 1 = initial memory load failed
-		// 2 = DMP configuration updates failed
-		// (if it's going to break, usually the code will be 1)
-		Serial.print(F("DMP Initialization failed (code "));
-		Serial.print(devStatus);
-		Serial.println(F(")"));
+	while(!mpu.begin()) {
+		Serial.println("Searching for MPU6050...");
+		delay(10);
 	}
+	Serial.println("MPU6050 Found!");
+
+	// Set accelerometer range
+
+	mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+	Serial.print("Accelerometer range set to: ");
+	switch (mpu.getAccelerometerRange()) {
+	case MPU6050_RANGE_2_G:
+		Serial.println("+-2G");
+		break;
+	case MPU6050_RANGE_4_G:
+		Serial.println("+-4G");
+		break;
+	case MPU6050_RANGE_8_G:
+		Serial.println("+-8G");
+		break;
+	case MPU6050_RANGE_16_G:
+		Serial.println("+-16G");
+		break;
+	}
+
+	// Set Gyroscope range
+
+	mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+	Serial.print("Gyro range set to: ");
+	switch (mpu.getGyroRange()) {
+	case MPU6050_RANGE_250_DEG:
+		Serial.println("+- 250 deg/s");
+		break;
+	case MPU6050_RANGE_500_DEG:
+		Serial.println("+- 500 deg/s");
+		break;
+	case MPU6050_RANGE_1000_DEG:
+		Serial.println("+- 1000 deg/s");
+		break;
+	case MPU6050_RANGE_2000_DEG:
+		Serial.println("+- 2000 deg/s");
+		break;
+	}
+
+	// Set filter bandwidth
+
+	mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+	Serial.print("Filter bandwidth set to: ");
+	switch (mpu.getFilterBandwidth()) {
+	case MPU6050_BAND_260_HZ:
+		Serial.println("260 Hz");
+		break;
+	case MPU6050_BAND_184_HZ:
+		Serial.println("184 Hz");
+		break;
+	case MPU6050_BAND_94_HZ:
+		Serial.println("94 Hz");
+		break;
+	case MPU6050_BAND_44_HZ:
+		Serial.println("44 Hz");
+		break;
+	case MPU6050_BAND_21_HZ:
+		Serial.println("21 Hz");
+		break;
+	case MPU6050_BAND_10_HZ:
+		Serial.println("10 Hz");
+		break;
+	case MPU6050_BAND_5_HZ:
+		Serial.println("5 Hz");
+		break;
+	}
+#endif
 }
 
 void IMU::run() {
-    if(!goodConnection) return;
-
-	// if programming failed, don't try to do anything
-	if (!dmpReady) {
-			Serial.print("DMP not ready...");
-			return;
-	}
-
-    mpu->dmpGetCurrentFIFOPacket(fifoBuffer);
-    
-    mpu->dmpGetQuaternion(&q, fifoBuffer);
-    mpu->dmpGetGravity(&gravity, &q);
-    
-    mpu->dmpGetYawPitchRoll(ypr, &q, &gravity);
-    
-    mpu->dmpGetAccel(&aa, fifoBuffer);
-    mpu->dmpGetLinearAccel(&aaReal, &aa, &gravity);
+	mpu.getEvent(&acc, &gyro, &temp);
 }
 
 float IMU::getPitch() {
-	if(!goodConnection) return 0.0;
-
-    return ypr[0] * 180 / M_PI;
+	return 0;
 }
 
 float IMU::getYaw() {
-	if(!goodConnection) return 0.0;
-
-    return ypr[1] * 180 / M_PI;
+	return 0;
 }
 
 float IMU::getRoll() {
-	if(!goodConnection) return 0.0;
-
-    return ypr[2] * 180 / M_PI;
+	return 0;
 }
 
 uint16_t IMU::getAccelX() {
-	if(!goodConnection) return 0;
-
-    return aaReal.x;
+	return 0;
 }
 
 uint16_t IMU::getAccelY() {
-	if(!goodConnection) return 0;
-
-    return aaReal.x;
+	return 0;
 }
 
 uint16_t IMU::getAccelZ() {
-	if(!goodConnection) return 0;
-
-    return aaReal.x;
+	return 0;
 }
 
 void IMU::printDebug() {
-	if(!goodConnection) return;
+	Serial.print("Angular Velocity X: ");
+	Serial.print(gyro.gyro.x);
+	Serial.print(" Y: ");
+	Serial.print(gyro.gyro.y);
+	Serial.print(" Z: ");
+	Serial.print(gyro.gyro.z);
+	Serial.println(" rad/s");
 
-    Serial.print("ypr\t");    Serial.print(ypr[0] * 180 / M_PI); Serial.print("\t");
-                              Serial.print(ypr[1] * 180 / M_PI); Serial.print("\t");
-                              Serial.print(ypr[2] * 180 / M_PI); Serial.println();
-    
-    Serial.print("areal\t");  Serial.print(aaReal.x);           Serial.print("\t");
-                              Serial.print(aaReal.y);           Serial.print("\t");
-                              Serial.print(aaReal.z);           Serial.println();
+	Serial.print("Acceleration X: ");
+	Serial.print(acc.acceleration.x);
+	Serial.print(" Y: ");
+	Serial.print(acc.acceleration.y);
+	Serial.print(" Z: ");
+	Serial.print(acc.acceleration.z);
+	Serial.println(" m/s^2");
+
+	Serial.print("Temperature: ");
+	Serial.print(temp.temperature);
+	Serial.println(" degC");
 }
