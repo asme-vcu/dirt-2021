@@ -5,23 +5,18 @@
 #define CONSTS_H
 
 // Serial
-#define SERIAL_PORT_SPEED 9600
+#define SERIAL_PORT_SPEED 115200
 #define DEBUG_INTERVAL 200
 #define DEBUG_ENABLED true
 
 // RC Module
-#define RC_CH1_PIN A0
-#define RC_CH2_PIN A1
-#define RC_CH3_PIN A2
-#define RC_CH4_PIN A3
-#define RC_CH5_PIN A4
-#define RC_CH6_PIN A5
+#define RC_SERIAL Serial1
 
 // ESC Module
-#define ESC_FL_PIN 2
-#define ESC_FR_PIN 3
-#define ESC_BL_PIN 6
-#define ESC_BR_PIN 5
+#define ESC_FL_PIN 8
+#define ESC_FR_PIN 9
+#define ESC_BL_PIN 10
+#define ESC_BR_PIN 11
 
 // PWM Constants
 // these are the duration of PWM pulses in ms
