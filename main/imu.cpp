@@ -206,5 +206,9 @@ void IMU::printDebug() {
 }
 
 bool IMU::getEnabled() {
+#if !MPU_ENABLED
+	return false;
+#else
 	return enabled;
+#endif
 }
