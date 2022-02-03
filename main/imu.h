@@ -13,9 +13,14 @@ class IMU : public Module {
         float getPitch(); // pitch of nose up and down
         float getYaw();   // rotation of nose left and right
         float getRoll();  // roll of nose clockwise and counterclockwise
-        uint16_t getAccelX();
-        uint16_t getAccelY();
-        uint16_t getAccelZ();
+        float getAccelX();
+        float getAccelY();
+        float getAccelZ();
+        float getVelocityX();
+        float getVelocityY();
+        float getVelocityZ();
+
+        bool getEnabled();
 
         void run();
         void setup();
@@ -23,6 +28,7 @@ class IMU : public Module {
     private:
         Adafruit_MPU6050 mpu;
         sensors_event_t acc, gyro, temp;
+        bool enabled;
 };
 
 #endif

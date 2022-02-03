@@ -7,16 +7,14 @@
 // Serial
 #define SERIAL_PORT_SPEED 115200
 #define DEBUG_INTERVAL 200
-#define DEBUG_ENABLED true
+#define DEBUG_ENABLED false
 
 // RC Module
 #define RC_SERIAL Serial1
 
 // ESC Module
-#define ESC_FL_PIN 8
-#define ESC_FR_PIN 9
-#define ESC_BL_PIN 10
-#define ESC_BR_PIN 11
+#define ESC_L_PIN 8
+#define ESC_R_PIN 9
 
 // PWM Constants
 // these are the duration of PWM pulses in ms
@@ -24,6 +22,11 @@
 #define PWM_MAX 2000
 
 // IMU Module
-#define MPU_ENABLED true
+#define MPU_ENABLED false
+
+// Status Indicators
+#define LED_HALT  49
+#define LED_NOSIG 51
+#define LED_IMU   53
 
 #endif

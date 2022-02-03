@@ -35,6 +35,11 @@ class RC : public Module {
         void run();
         void setup();
         void printDebug();
+
+        bool isDisconnected();
+    private:
+        int prev_val[10];
+        uint32_t timeout;
 };
 
 #endif

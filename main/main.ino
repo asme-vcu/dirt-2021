@@ -7,12 +7,9 @@
 RC rc;
 IMU imu;
 
-Servo esc_fl;
-Servo esc_fr;
-Servo esc_bl;
-Servo esc_br;
+Servo esc_l;
+Servo esc_r;
 
-int power_calibrate;
 uint32_t debug_timer;
 
 void setup() {
@@ -25,40 +22,43 @@ void setup() {
     imu = IMU();
     imu.setup();
 
-	esc_fl.attach(ESC_FL_PIN, PWM_MIN, PWM_MAX);
-	esc_fr.attach(ESC_FR_PIN, PWM_MIN, PWM_MAX);
-	esc_bl.attach(ESC_BL_PIN, PWM_MIN, PWM_MAX);
-	esc_br.attach(ESC_BR_PIN, PWM_MIN, PWM_MAX);
+	esc_l.attach(ESC_L_PIN, PWM_MIN, PWM_MAX);
+	esc_r.attach(ESC_R_PIN, PWM_MIN, PWM_MAX);\
 
     debug_timer = millis();
 
-    /*power_calibrate = 0;
-    for(int i = 0; i < 100; i++) {
-        rc->run();
-        int power = rc->getRightStickY();
-        if(power >= PWM_MIN && power <= PWM_MAX) {
-            power_calibrate += power;
-        } else i--;
-        delay(200);
-    }
-    power_calibrate /= 100;*/
+    pinMode(LED_HALT, OUTPUT);
+    pinMode(LED_NOSIG, OUTPUT);
 }
 
 void loop() {
     rc.run();
     imu.run();
 
-    int powerLevel = rc.getRightStickY();
+    bool halt = false;
 
-    // fix range & add killswitch
-    if(powerLevel < 1000 || powerLevel > 2000 || rc.getSwitchA() > 1500) {
-        powerLevel = 1500;
+    int powerLevel = constrain(rc.getRightStickY(), 1000, 2000);
+
+    // Get killswitch
+    if(rc.getSwitchA() > 1500) {
+        halt = true;
+        digitalWrite(LED_HALT, HIGH);
+    } else {
+        digitalWrite(LED_HALT, LOW);
     }
 
-    esc_fl.writeMicroseconds(powerLevel);
-    esc_fr.writeMicroseconds(powerLevel);
-    esc_bl.writeMicroseconds(powerLevel);
-    esc_br.writeMicroseconds(powerLevel);
+    // Get connection status
+    if(rc.isDisconnected()) {
+        halt = true;
+        digitalWrite(LED_NOSIG, HIGH);
+    } else {
+        digitalWrite(LED_NOSIG, LOW);
+    }
+
+    if(halt) powerLevel = 1500;
+
+    esc_l.writeMicroseconds(powerLevel);
+    esc_r.writeMicroseconds(powerLevel);
 
 #if DEBUG_ENABLED
     if(millis() >= debug_timer + DEBUG_INTERVAL) {

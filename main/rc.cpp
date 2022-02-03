@@ -7,15 +7,29 @@
 // Main module setup
 void RC::setup() {
     IBus.begin(RC_SERIAL);
+    timeout = millis();
 }
 
 // Main module run-loop
 void RC::run() {
     IBus.loop();
+
+    bool same = true;
+    for(int i = 0; i < 10; i++) {
+        if(prev_val[i] != IBus.readChannel(i)) {
+            same = false;
+            prev_val[i] = IBus.readChannel(i);
+        }
+    }
+    if(!same) timeout = millis();
 }
 
 // Constructor
-RC::RC() {}
+RC::RC() {
+    for(int i = 0; i < 10; i++) {
+        prev_val[i] = -1000;
+    }
+}
 
 void RC::printDebug() {
     Serial.print("CH1:");  Serial.print(map(IBus.readChannel(RC_CH1),  PWM_MIN, PWM_MAX, -100, 100)); Serial.print("\t");
@@ -40,3 +54,7 @@ uint16_t RC::getSwitchA()     { return IBus.readChannel(RC_CH7);  }
 uint16_t RC::getSwitchB()     { return IBus.readChannel(RC_CH8);  }
 uint16_t RC::getSwitchC()     { return IBus.readChannel(RC_CH9);  }
 uint16_t RC::getSwitchD()     { return IBus.readChannel(RC_CH10); }
+
+bool RC::isDisconnected() {
+    return millis() > timeout + 1*1000;
+}
