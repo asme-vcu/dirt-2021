@@ -2,8 +2,8 @@
 #include"imu.h"
 #include"consts.h"
 
-IMU::IMU() {
-	mpu = Adafruit_MPU6050();
+IMU::IMU(LEDController& leds) : _leds(leds) {
+	_mpu = Adafruit_MPU6050();
 }
 
 void IMU::setup() {
@@ -16,19 +16,20 @@ void IMU::setup() {
 	uint32_t imuTimer = millis(), debugTimer = imuTimer;
 	
 	// wait max 2 minutes
+	_leds.imu().blink();
 	while(millis() < imuTimer + 30*1000 && !imuFound) {
 		// detect IMU
-		if(mpu.begin()) {
+		if(_mpu.begin()) {
 			imuFound = true;
 		} else {
+			_leds.run();
+#if DEBUG_ENABLED
 			// print info and blink LED
 			if(millis() > debugTimer + 500) {
 				debugTimer = millis();
-#if DEBUG_ENABLED
 				Serial.println("Searching for MPU6050...");
-#endif
-				digitalWrite(LED_IMU, blink = !blink);
 			}
+#endif
 		}
 		delay(10);
 	}
@@ -39,25 +40,23 @@ void IMU::setup() {
 #if DEBUG_ENABLED
 		Serial.println("MPU6050 Not Found...");
 #endif
-		digitalWrite(LED_IMU, LOW);
+		_leds.imu().off();
 		return;
 	}
 
-	enabled = imuFound;
-
 	// IMU is working at this point...
+	_leds.imu().on();
+	_enabled = imuFound;
 
 #if DEBUG_ENABLED
 	Serial.println("MPU6050 Found!");
 #endif
 
-	digitalWrite(LED_IMU, HIGH);
-
 	// Set accelerometer range
 
-	mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+	_mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
 	Serial.print("Accelerometer range set to: ");
-	switch (mpu.getAccelerometerRange()) {
+	switch (_mpu.getAccelerometerRange()) {
 	case MPU6050_RANGE_2_G:
 		Serial.println("+-2G");
 		break;
@@ -74,9 +73,9 @@ void IMU::setup() {
 
 	// Set Gyroscope range
 
-	mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+	_mpu.setGyroRange(MPU6050_RANGE_500_DEG);
 	Serial.print("Gyro range set to: ");
-	switch (mpu.getGyroRange()) {
+	switch (_mpu.getGyroRange()) {
 	case MPU6050_RANGE_250_DEG:
 		Serial.println("+- 250 deg/s");
 		break;
@@ -93,9 +92,9 @@ void IMU::setup() {
 
 	// Set filter bandwidth
 
-	mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+	_mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 	Serial.print("Filter bandwidth set to: ");
-	switch (mpu.getFilterBandwidth()) {
+	switch (_mpu.getFilterBandwidth()) {
 	case MPU6050_BAND_260_HZ:
 		Serial.println("260 Hz");
 		break;
@@ -122,86 +121,88 @@ void IMU::setup() {
 }
 
 void IMU::run() {
-	if(!enabled) return;
+	if(!_enabled) return;
 
-	mpu.getEvent(&acc, &gyro, &temp);
+	_mpu.getEvent(&_acc, &_gyro, &_temp);
 }
 
 float IMU::getPitch() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
 	return 0;
 }
 
 float IMU::getYaw() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
 	return 0;
 }
 
 float IMU::getRoll() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
 	return 0;
 }
 
 float IMU::getAccelX() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
-	return acc.acceleration.x;
+	return _acc.acceleration.x;
 }
 
 float IMU::getAccelY() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
-	return acc.acceleration.y;
+	return _acc.acceleration.y;
 }
 
 float IMU::getAccelZ() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
-	return acc.acceleration.z;
+	return _acc.acceleration.z;
 }
 
 float IMU::getVelocityX() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
-	return gyro.gyro.x;
+	return _gyro.gyro.x;
 }
 
 float IMU::getVelocityY() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
-	return gyro.gyro.y;
+	return _gyro.gyro.y;
 }
 
 float IMU::getVelocityZ() {
-	if(!enabled) return 0;
+	if(!_enabled) return 0;
 
-	return gyro.gyro.z;
+	return _gyro.gyro.z;
 }
 
 void IMU::printDebug() {
-	if(!enabled) return;
+	if(!_enabled) return;
 
+	Serial.println("[IMU Module]");
+	
 	Serial.print("Angular Velocity X: ");
-	Serial.print(gyro.gyro.x);
+	Serial.print(_gyro.gyro.x);
 	Serial.print(" Y: ");
-	Serial.print(gyro.gyro.y);
+	Serial.print(_gyro.gyro.y);
 	Serial.print(" Z: ");
-	Serial.print(gyro.gyro.z);
+	Serial.print(_gyro.gyro.z);
 	Serial.println(" rad/s");
 
 	Serial.print("Acceleration X: ");
-	Serial.print(acc.acceleration.x);
+	Serial.print(_acc.acceleration.x);
 	Serial.print(" Y: ");
-	Serial.print(acc.acceleration.y);
+	Serial.print(_acc.acceleration.y);
 	Serial.print(" Z: ");
-	Serial.print(acc.acceleration.z);
+	Serial.print(_acc.acceleration.z);
 	Serial.println(" m/s^2");
 
 	Serial.print("Temperature: ");
-	Serial.print(temp.temperature);
+	Serial.print(_temp.temperature);
 	Serial.println(" degC");
 }
 
@@ -209,6 +210,6 @@ bool IMU::getEnabled() {
 #if !MPU_ENABLED
 	return false;
 #else
-	return enabled;
+	return _enabled;
 #endif
 }

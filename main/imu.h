@@ -4,11 +4,12 @@
 
 #include<Adafruit_MPU6050.h>
 #include"module.h"
+#include"led_controller.h"
 
 class IMU : public Module {
     public:
         // Constructor
-        IMU();
+        IMU(LEDController&);
         // values range from -180 to 180
         float getPitch(); // pitch of nose up and down
         float getYaw();   // rotation of nose left and right
@@ -26,9 +27,10 @@ class IMU : public Module {
         void setup();
         void printDebug();
     private:
-        Adafruit_MPU6050 mpu;
-        sensors_event_t acc, gyro, temp;
-        bool enabled;
+        LEDController _leds;
+        Adafruit_MPU6050 _mpu;
+        sensors_event_t _acc, _gyro, _temp;
+        bool _enabled;
 };
 
 #endif
