@@ -56,5 +56,5 @@ uint16_t RC::getSwitchC()     { return IBus.readChannel(RC_CH9);  }
 uint16_t RC::getSwitchD()     { return IBus.readChannel(RC_CH10); }
 
 bool RC::isDisconnected() {
-    return millis() > timeout + 1*1000;
+    return millis() > timeout + TIMEOUT_INTERVAL;
 }

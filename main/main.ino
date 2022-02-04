@@ -23,7 +23,7 @@ void setup() {
     imu.setup();
 
 	esc_l.attach(ESC_L_PIN, PWM_MIN, PWM_MAX);
-	esc_r.attach(ESC_R_PIN, PWM_MIN, PWM_MAX);\
+	esc_r.attach(ESC_R_PIN, PWM_MIN, PWM_MAX);
 
     debug_timer = millis();
 
@@ -55,6 +55,7 @@ void loop() {
         digitalWrite(LED_NOSIG, LOW);
     }
 
+    // means turn off motor (bidirectional between 1000 and 2000 ms)
     if(halt) powerLevel = 1500;
 
     esc_l.writeMicroseconds(powerLevel);

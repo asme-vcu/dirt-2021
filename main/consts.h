@@ -11,6 +11,7 @@
 
 // RC Module
 #define RC_SERIAL Serial1
+#define TIMEOUT_INTERVAL 1000 // ms
 
 // ESC Module
 #define ESC_L_PIN 8
