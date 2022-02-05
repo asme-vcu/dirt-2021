@@ -25,6 +25,7 @@ void RC::run() {
             _prev_val[i] = IBus.readChannel(i);
         }
     }
+
     if(!same) _timeout = millis();
 
     if(isDisconnected()) {
@@ -87,11 +88,11 @@ bool RC::getGyroscopeCorrect() {
 
 // must turn OFF
 bool RC::isHalted() {
-    return getSwitchC() < 1500;
+    return getSwitchD() < 1500;
 }
 
 bool RC::isDisconnected() {
-    return millis() > _timeout + TIMEOUT_INTERVAL;
+    return (millis() > _timeout + TIMEOUT_INTERVAL);
 }
 
 // raw controller values

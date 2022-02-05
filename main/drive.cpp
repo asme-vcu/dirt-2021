@@ -42,13 +42,13 @@ void Drive::run() {
 
 Drive::Velocity Drive::getTarget() {
     // get inputs
-    long thi = constrain(_rc.getThrust(), 1000, 2000);
-    long tui = constrain(_rc.getTurn(),  1000, 2000);
+    int16_t thi = constrain(_rc.getThrust(), 1000, 2000);
+    int16_t tui = constrain(_rc.getTurn(),   1000, 2000);
     RC::speed speed_control = _rc.getSpeed();
 
     // map them to floats
-    float th = (thi - 1000.0f)/1000.0f;
-    float tu = (tui - 1000.0f)/1000.0f;
+    float th = (thi - 1500)/500.0f;
+    float tu = (tui - 1500)/500.0f;
 
     // get speed target weight
     float c;
@@ -86,9 +86,9 @@ void Drive::setSpeed(Velocity v) {
         // for bidirectional ESC's this means stop
         left = right = 1500;
     } else {
-        // remap float (0, 1) to long (1000, 2000)
-        left  = (v.left  * 1000) + 1000;
-        right = (v.right * 1000) + 1000;
+        // remap float (-1, 1) to long (1000, 2000)
+        left  = (v.left  * 500) + 1500;
+        right = (v.right * 500) + 1500;
 
         // constrain values
         left  = constrain(left,  1000, 2000);
